@@ -1,3 +1,6 @@
+#include "App.h"
+
 int main(){
-    return 0;
+    App app;
+    return app.run();
 }
