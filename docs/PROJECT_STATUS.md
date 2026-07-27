@@ -16,6 +16,7 @@ Phase 1：单机 FPS 基础
 - 在 Windows 上安装并验证 MSVC Build Tools、Windows SDK、CMake 和 Ninja；C++20 最小程序可以正常编译、链接和运行。
 - 创建最小 CMake 项目，使用 Ninja 和 x64 MSVC 成功构建并运行 `fps_client`。
 - 将客户端拆分为 `main.cpp`、`App.h` 和 `App.cpp`，完成声明、定义、跨编译单元链接及多源文件 CMake 构建验证。
+- 使用 CMake `FetchContent` 固定获取 GLFW 3.4，并成功构建、链接其静态库。
 
 ## 关键决策
 
@@ -23,6 +24,7 @@ Phase 1：单机 FPS 基础
 - macOS 使用 Apple Clang，Windows 使用 MSVC Build Tools。
 - 不使用游戏引擎。
 - 图形使用 OpenGL、GLFW 和 GLM。
+- GLFW 通过 CMake `FetchContent` 获取并固定为 3.4，避免依赖每台设备手动安装。
 - 网络阶段优先使用原生 UDP Socket。
 - 服务器拥有最终权威。
 - 开发过程采用“有脚手架的亲手实现”：先讲最小必要概念，再由用户尝试核心实现，卡住时分级提示，之后共同审查和复盘。
