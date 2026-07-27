@@ -47,3 +47,5 @@
 - 每次改动保持小而可验证，并遵循项目当前阶段。
 - 跨平台代码应同时考虑 Windows/MSVC 与 macOS/Apple Clang。
 - 使用 Python 时优先使用 `uv`，但尊重仓库已有工作流。
+- 本学习项目在 macOS 上的相关笔记保存在 `/Users/tangcheng/笔记/SyncedLib/CodeNote/FPSdemo`；仅在用户明确要求时记录，使用 Obsidian 兼容的 Markdown，内容保持简洁清晰、合理分条，并按需使用内部链接、引用块和代码引用。
+- Windows 与 macOS 使用同步的同一笔记库；在 Windows 上记录笔记时，应使用该设备对应的同步笔记库路径，不使用 macOS 绝对路径。
