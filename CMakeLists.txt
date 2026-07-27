@@ -13,7 +13,13 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(glfw)
 
-add_executable(fps_client client/main.cpp client/App.cpp)
+add_executable(
+    fps_client
+    client/main.cpp
+    client/App.cpp
+    client/GlfwRuntime.cpp
+    client/Window.cpp
+)
 
 target_link_libraries(fps_client PRIVATE glfw)
 

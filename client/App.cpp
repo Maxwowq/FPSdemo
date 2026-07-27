@@ -1,28 +1,27 @@
 #include "App.h"
+#include "GlfwRuntime.h"
+#include "Window.h"
 #include <GLFW/glfw3.h>
 
 int App::run() {
-    if (glfwInit() == GLFW_FALSE) {
+    GlfwRuntime glfwRuntime;
+    if (!glfwRuntime.isInitialized()) {
         return -1;
     }
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "FPSdemo", nullptr, nullptr);
+    Window window{800, 600, "FPSdemo"};
 
-    if (window == nullptr) {
-        glfwTerminate();
+    if (!window.isValid()) {
         return -1;
     }
 
-    glfwMakeContextCurrent(window);
+    window.makeContextCurrent();
     glfwSwapInterval(1);
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!window.shouldClose()) {
         glfwPollEvents();
-        glfwSwapBuffers(window);
+        window.swapBuffers();
     }
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
 
     return 0;
 }
