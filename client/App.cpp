@@ -108,14 +108,46 @@ int App::run() {
         return -1;
     }
 
+    // 创建Program
+    const GLuint program = glCreateProgram();
+    // 装入shader
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, fragmentShader);
+    // 链接program
+    glLinkProgram(program);
+
+    //  查询program链接状态
+    GLint programStatus = GL_FALSE;
+    glGetProgramiv(program, GL_LINK_STATUS, &programStatus);
+    // 若链接失败
+    if (programStatus != GL_TRUE) {
+        GLint logLength = 0;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+        std::string logBuffer(static_cast<size_t>(logLength), '\0');
+        glGetProgramInfoLog(program, logLength, nullptr, logBuffer.data());
+        std::cerr << "Shader Program Link Failed:\n" << logBuffer;
+        return -1;
+    }
+
+    // 启用shader program
+    glUseProgram(program);
+
     while (!window.shouldClose()) {
         glfwPollEvents();
 
         glClearColor(0.1F, 0.15F, 0.2F, 1.0F);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // 先绑定对应vao
+        glBindVertexArray(vao);
+        // 绘制命令
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
         window.swapBuffers();
     }
+
+    // 释放program
+    glDeleteProgram(program);
 
     // 释放shader
     glDeleteShader(vertexShader);

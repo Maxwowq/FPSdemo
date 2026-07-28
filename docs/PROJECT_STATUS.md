@@ -6,7 +6,7 @@
 
 Phase 1：单机 FPS 基础
 
-当前目标：搭建开发环境和项目结构，完成第一个最小可运行程序。
+当前目标：完成最小现代 OpenGL 渲染流程，并逐步进入 FPS 摄像机与输入控制。
 
 ## 已完成
 
@@ -23,6 +23,10 @@ Phase 1：单机 FPS 基础
 - 配置 OpenGL 3.3 Core Profile context，使用跨平台 CMake 目标 `OpenGL::GL` 链接 OpenGL，并完成每帧颜色缓冲清除。
 - 使用 framebuffer 实际像素尺寸初始化 OpenGL viewport，并在 framebuffer 尺寸变化时通过 GLFW callback 同步更新。
 - 集成 GLAD 2.0.8 的 OpenGL 3.3 Core 函数加载代码，在 context 激活后通过 `glfwGetProcAddress` 加载现代 OpenGL API。
+- 建立三角形顶点数据、VAO 和 VBO，配置顶点属性读取规则。
+- 编写并编译最小顶点着色器和片段着色器，加入编译状态与错误日志检查。
+- 创建、链接并启用 Shader Program，加入链接状态与错误日志检查。
+- 使用 `glDrawArrays` 完成第一个橙色三角形的渲染，并验证运行画面。
 
 ## 关键决策
 
@@ -41,9 +45,9 @@ Phase 1：单机 FPS 基础
 
 ## 下一步
 
-1. 讲解现代 OpenGL 的可编程渲染管线和三角形数据流。
-2. 建立最小 Shader、VAO 和 VBO 渲染流程。
-3. 绘制第一个三角形并验证窗口缩放行为。
+1. 简短复盘三角形从 CPU 顶点数据到屏幕像素的完整数据流。
+2. 将 Shader Program 的创建、错误检查和释放逐步封装，控制 `App::run` 的职责。
+3. 引入 GLM 和基础变换，为 FPS 摄像机做准备。
 
 ## 维护规则
 
