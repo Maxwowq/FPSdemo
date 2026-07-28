@@ -1,12 +1,12 @@
 # 项目状态
 
-最后更新：2026-07-28
+最后更新：2026-07-29
 
 ## 当前阶段
 
 Phase 1：单机 FPS 基础
 
-当前目标：完成最小现代 OpenGL 渲染流程，并逐步进入 FPS 摄像机与输入控制。
+当前目标：在已完成的现代 OpenGL 渲染流程上引入 GLM 与基础空间变换，为 FPS 摄像机做准备。
 
 ## 已完成
 
@@ -40,7 +40,7 @@ Phase 1：单机 FPS 基础
 
 ## 进行中
 
-- `ShaderProgram` RAII 封装及其在 `App::run` 中的接入已完成，正在进行板块收尾与复盘。
+- 开始引入 GLM，先建立模型变换与 Shader uniform 的最小工作流。
 
 ## 关键决策
 
@@ -54,16 +54,16 @@ Phase 1：单机 FPS 基础
 - C/C++ 代码基于 LLVM 风格使用 4 空格缩进、100 列限制和左侧指针对齐，并由 VS Code 保存时自动格式化。
 - GLFW 资源采用 RAII 管理；禁止复制拥有资源的对象，并通过局部对象的逆序析构保证窗口先于 GLFW 全局环境释放。
 - Shader 和 Program 采用不同生命周期：Shader 在 Program 链接成功后即可删除，Program
-  保留到渲染结束；下一步使用 `ShaderProgram` RAII 类管理 Program。
+  保留到渲染结束；`ShaderProgram` RAII 类负责完整管理 Program。
 - 网络阶段优先使用原生 UDP Socket。
 - 服务器拥有最终权威。
 - 开发过程采用“有脚手架的亲手实现”：先讲最小必要概念，再由用户尝试核心实现，卡住时分级提示，之后共同审查和复盘。
 
 ## 下一步
 
-1. 清理 `App.cpp` 中迁移后不再使用的头文件，并完成 `ShaderProgram` 封装复盘。
-2. 检查并提交本板块 Git 变更。
-3. 引入 GLM 和基础变换。
+1. 通过 CMake 引入 GLM，并验证跨平台目标链接。
+2. 为 `ShaderProgram` 增加最小的 `mat4` uniform 设置接口。
+3. 使用模型矩阵平移三角形，验证 CPU 到 Shader 的矩阵数据传递。
 
 ## 维护规则
 
