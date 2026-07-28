@@ -27,11 +27,20 @@ Phase 1：单机 FPS 基础
 - 编写并编译最小顶点着色器和片段着色器，加入编译状态与错误日志检查。
 - 创建、链接并启用 Shader Program，加入链接状态与错误日志检查。
 - 使用 `glDrawArrays` 完成第一个橙色三角形的渲染，并验证运行画面。
+- 实现 `ShaderProgram` 的基础 RAII 接口：析构时释放 Program、`use()` 启用 Program、
+  `isValid()` 判断资源有效性，并将源文件加入 CMake 构建。
+- 将单个 Shader 的创建、源码设置、编译状态检查和错误日志封装为文件内辅助函数，
+  并保证编译失败时释放临时 Shader 资源。
+- 在 `ShaderProgram` 构造函数中接入顶点和片段 Shader 编译，并覆盖单边失败与双边成功时的
+  临时资源清理路径。
+- 完成 `ShaderProgram` 的 Program 创建、Shader 附加、链接状态与错误日志检查；链接失败时
+  释放 Program 并恢复无效状态，链接成功后由析构函数管理其生命周期。
+- 使用 `ShaderProgram` 替换 `App::run` 中手动编译 Shader、链接 Program 和释放 Program 的
+  原始流程，并通过完整构建与运行画面验证，橙色三角形保持正常显示。
 
 ## 进行中
 
-- 已创建 `ShaderProgram` 的 RAII 类声明并禁止复制，尚未实现成员函数、加入 CMake
-  或替换 `App::run` 中的原始 Shader Program 流程。
+- `ShaderProgram` RAII 封装及其在 `App::run` 中的接入已完成，正在进行板块收尾与复盘。
 
 ## 关键决策
 
@@ -52,9 +61,9 @@ Phase 1：单机 FPS 基础
 
 ## 下一步
 
-1. 实现 `ShaderProgram` 的析构函数、`use()` 和 `isValid()`，并将源文件加入 CMake。
-2. 将 Shader 编译、Program 链接和错误检查逐步迁移到 `ShaderProgram`。
-3. 用 `ShaderProgram` 替换 `App::run` 中的原始流程，再引入 GLM 和基础变换。
+1. 清理 `App.cpp` 中迁移后不再使用的头文件，并完成 `ShaderProgram` 封装复盘。
+2. 检查并提交本板块 Git 变更。
+3. 引入 GLM 和基础变换。
 
 ## 维护规则
 

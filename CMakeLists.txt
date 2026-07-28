@@ -27,6 +27,7 @@ add_executable(
     client/App.cpp
     client/GlfwRuntime.cpp
     client/Window.cpp
+    client/ShaderProgram.cpp
 )
 
 target_link_libraries(fps_client
