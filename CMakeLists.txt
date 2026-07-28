@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(FPSdemo VERSION 0.1.0 LANGUAGES CXX)
+project(FPSdemo VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -17,6 +17,10 @@ FetchContent_MakeAvailable(glfw)
 
 find_package(OpenGL REQUIRED)
 
+add_library(glad STATIC third_party/glad/src/gl.c)
+
+target_include_directories(glad PUBLIC third_party/glad/include)
+
 add_executable(
     fps_client
     client/main.cpp
@@ -28,11 +32,14 @@ add_executable(
 target_link_libraries(fps_client
     PRIVATE
         glfw
+        glad
         OpenGL::GL
 )
 
 if(APPLE)
     target_compile_definitions(fps_client PRIVATE GL_SILENCE_DEPRECATION)
 endif()
+
+target_compile_definitions(fps_client PRIVATE GLFW_INCLUDE_NONE)
 
 target_compile_features(fps_client PRIVATE cxx_std_20)

@@ -2,6 +2,7 @@
 #include "GlfwRuntime.h"
 #include "Window.h"
 #include <GLFW/glfw3.h>
+#include <glad/gl.h>
 
 int App::run() {
     GlfwRuntime glfwRuntime;
@@ -16,6 +17,12 @@ int App::run() {
     }
 
     window.makeContextCurrent();
+
+    const int version = gladLoadGL(glfwGetProcAddress);
+    if (version == 0) {
+        return -1;
+    }
+
     // 先makeContextCurrent再update，因为OpenGL更新的是当前窗口
     window.updateViewport();
     glfwSwapInterval(1);

@@ -22,6 +22,7 @@ Phase 1：单机 FPS 基础
 - 添加 `GlfwRuntime` 和 `Window` RAII 封装，使 GLFW 全局环境与窗口句柄按对象作用域自动释放。
 - 配置 OpenGL 3.3 Core Profile context，使用跨平台 CMake 目标 `OpenGL::GL` 链接 OpenGL，并完成每帧颜色缓冲清除。
 - 使用 framebuffer 实际像素尺寸初始化 OpenGL viewport，并在 framebuffer 尺寸变化时通过 GLFW callback 同步更新。
+- 集成 GLAD 2.0.8 的 OpenGL 3.3 Core 函数加载代码，在 context 激活后通过 `glfwGetProcAddress` 加载现代 OpenGL API。
 
 ## 关键决策
 
@@ -31,6 +32,7 @@ Phase 1：单机 FPS 基础
 - 图形使用 OpenGL、GLFW 和 GLM。
 - 基础渲染 context 使用 OpenGL 3.3 Core Profile；macOS 启用 forward compatibility，并显式接受其 OpenGL 弃用状态。
 - GLFW 通过 CMake `FetchContent` 获取并固定为 3.4，避免依赖每台设备手动安装。
+- GLAD 生成代码直接纳入仓库并构建为独立静态库，避免在各平台配置阶段引入 Python 生成依赖。
 - C/C++ 代码基于 LLVM 风格使用 4 空格缩进、100 列限制和左侧指针对齐，并由 VS Code 保存时自动格式化。
 - GLFW 资源采用 RAII 管理；禁止复制拥有资源的对象，并通过局部对象的逆序析构保证窗口先于 GLFW 全局环境释放。
 - 网络阶段优先使用原生 UDP Socket。
@@ -39,7 +41,7 @@ Phase 1：单机 FPS 基础
 
 ## 下一步
 
-1. 确定现代 OpenGL 函数加载方式。
+1. 讲解现代 OpenGL 的可编程渲染管线和三角形数据流。
 2. 建立最小 Shader、VAO 和 VBO 渲染流程。
 3. 绘制第一个三角形并验证窗口缩放行为。
 

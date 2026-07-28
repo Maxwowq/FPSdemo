@@ -1,5 +1,6 @@
 #include "Window.h"
 #include <GLFW/glfw3.h>
+#include <glad/gl.h>
 
 Window::Window(int width, int height, const char* title) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -44,7 +45,7 @@ void Window::framebufferSizeCallback(GLFWwindow*, int width, int height) {
 // 更新OpenGL的绘图像素
 void Window::updateViewport() {
     int width, height;
-    // 调用glfw借口获取像素尺寸
+    // 调用glfw接口获取像素尺寸
     glfwGetFramebufferSize(handle_, &width, &height);
     // 设置 viewport 的 x 为 0，y 为 0，宽为 width，高为 height
     glViewport(0, 0, width, height);
