@@ -15,6 +15,15 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(glfw)
 
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG 1.0.3
+    GIT_SHALLOW TRUE
+)
+
+FetchContent_MakeAvailable(glm)
+
 find_package(OpenGL REQUIRED)
 
 add_library(glad STATIC third_party/glad/src/gl.c)
@@ -35,6 +44,7 @@ target_link_libraries(fps_client
         glfw
         glad
         OpenGL::GL
+        glm::glm
 )
 
 if(APPLE)

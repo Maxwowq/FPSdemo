@@ -37,10 +37,12 @@ Phase 1：单机 FPS 基础
   释放 Program 并恢复无效状态，链接成功后由析构函数管理其生命周期。
 - 使用 `ShaderProgram` 替换 `App::run` 中手动编译 Shader、链接 Program 和释放 Program 的
   原始流程，并通过完整构建与运行画面验证，橙色三角形保持正常显示。
+- 通过 CMake `FetchContent` 固定引入 GLM 1.0.3，并使用跨平台目标 `glm::glm` 接入客户端；
+  重新配置和完整构建通过。
 
 ## 进行中
 
-- 开始引入 GLM，先建立模型变换与 Shader uniform 的最小工作流。
+- GLM 已完成构建接入，下一步建立 `mat4` uniform 从 CPU 传入 Shader 的最小工作流。
 
 ## 关键决策
 
@@ -61,9 +63,9 @@ Phase 1：单机 FPS 基础
 
 ## 下一步
 
-1. 通过 CMake 引入 GLM，并验证跨平台目标链接。
-2. 为 `ShaderProgram` 增加最小的 `mat4` uniform 设置接口。
-3. 使用模型矩阵平移三角形，验证 CPU 到 Shader 的矩阵数据传递。
+1. 为 `ShaderProgram` 增加最小的 `mat4` uniform 设置接口。
+2. 使用模型矩阵平移三角形，验证 CPU 到 Shader 的矩阵数据传递。
+3. 区分模型、观察与投影矩阵的职责，为 FPS 摄像机做准备。
 
 ## 维护规则
 
