@@ -129,6 +129,10 @@ int App::run() {
         return -1;
     }
 
+    // 若链接无误，则可以释放shader
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
     // 启用shader program
     glUseProgram(program);
 
@@ -149,9 +153,6 @@ int App::run() {
     // 释放program
     glDeleteProgram(program);
 
-    // 释放shader
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
     // 释放vao和vbo对象
     glDeleteBuffers(1, &vbo);
     glDeleteVertexArrays(1, &vao);
