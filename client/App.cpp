@@ -20,6 +20,10 @@ int App::run() {
 
     while (!window.shouldClose()) {
         glfwPollEvents();
+
+        glClearColor(0.1F, 0.15F, 0.2F, 1.0F);
+        glClear(GL_COLOR_BUFFER_BIT);
+
         window.swapBuffers();
     }
 

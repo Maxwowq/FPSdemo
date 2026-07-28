@@ -20,6 +20,7 @@ Phase 1：单机 FPS 基础
 - 使用 GLFW 创建 800×600 窗口，完成 OpenGL context 激活、垂直同步、事件循环和资源清理，并验证窗口可正常关闭。
 - 添加 `.clang-format` 和 VS Code 工作区设置，统一 C/C++ 格式并启用保存时自动格式化。
 - 添加 `GlfwRuntime` 和 `Window` RAII 封装，使 GLFW 全局环境与窗口句柄按对象作用域自动释放。
+- 配置 OpenGL 3.3 Core Profile context，使用跨平台 CMake 目标 `OpenGL::GL` 链接 OpenGL，并完成每帧颜色缓冲清除。
 
 ## 关键决策
 
@@ -27,6 +28,7 @@ Phase 1：单机 FPS 基础
 - macOS 使用 Apple Clang，Windows 使用 MSVC Build Tools。
 - 不使用游戏引擎。
 - 图形使用 OpenGL、GLFW 和 GLM。
+- 基础渲染 context 使用 OpenGL 3.3 Core Profile；macOS 启用 forward compatibility，并显式接受其 OpenGL 弃用状态。
 - GLFW 通过 CMake `FetchContent` 获取并固定为 3.4，避免依赖每台设备手动安装。
 - C/C++ 代码基于 LLVM 风格使用 4 空格缩进、100 列限制和左侧指针对齐，并由 VS Code 保存时自动格式化。
 - GLFW 资源采用 RAII 管理；禁止复制拥有资源的对象，并通过局部对象的逆序析构保证窗口先于 GLFW 全局环境释放。
@@ -36,9 +38,9 @@ Phase 1：单机 FPS 基础
 
 ## 下一步
 
-1. 配置明确的 OpenGL context 版本并建立基础渲染流程。
-2. 加入窗口尺寸变化处理和第一帧清屏。
-3. 确定现代 OpenGL 函数加载方式。
+1. 加入 framebuffer 尺寸变化处理，并同步更新 OpenGL viewport。
+2. 确定现代 OpenGL 函数加载方式。
+3. 建立最小 Shader、VAO 和 VBO 渲染流程。
 
 ## 维护规则
 
