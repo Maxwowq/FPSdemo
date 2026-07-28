@@ -21,6 +21,7 @@ Phase 1：单机 FPS 基础
 - 添加 `.clang-format` 和 VS Code 工作区设置，统一 C/C++ 格式并启用保存时自动格式化。
 - 添加 `GlfwRuntime` 和 `Window` RAII 封装，使 GLFW 全局环境与窗口句柄按对象作用域自动释放。
 - 配置 OpenGL 3.3 Core Profile context，使用跨平台 CMake 目标 `OpenGL::GL` 链接 OpenGL，并完成每帧颜色缓冲清除。
+- 使用 framebuffer 实际像素尺寸初始化 OpenGL viewport，并在 framebuffer 尺寸变化时通过 GLFW callback 同步更新。
 
 ## 关键决策
 
@@ -38,9 +39,9 @@ Phase 1：单机 FPS 基础
 
 ## 下一步
 
-1. 加入 framebuffer 尺寸变化处理，并同步更新 OpenGL viewport。
-2. 确定现代 OpenGL 函数加载方式。
-3. 建立最小 Shader、VAO 和 VBO 渲染流程。
+1. 确定现代 OpenGL 函数加载方式。
+2. 建立最小 Shader、VAO 和 VBO 渲染流程。
+3. 绘制第一个三角形并验证窗口缩放行为。
 
 ## 维护规则
 

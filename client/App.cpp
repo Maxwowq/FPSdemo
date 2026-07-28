@@ -16,6 +16,8 @@ int App::run() {
     }
 
     window.makeContextCurrent();
+    // 先makeContextCurrent再update，因为OpenGL更新的是当前窗口
+    window.updateViewport();
     glfwSwapInterval(1);
 
     while (!window.shouldClose()) {

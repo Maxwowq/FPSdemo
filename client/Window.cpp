@@ -8,6 +8,10 @@ Window::Window(int width, int height, const char* title) {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 
     handle_ = glfwCreateWindow(width, height, title, nullptr, nullptr);
+
+    if (handle_ != nullptr) {
+        glfwSetFramebufferSizeCallback(handle_, framebufferSizeCallback);
+    }
 }
 
 Window::~Window() {
@@ -30,4 +34,18 @@ bool Window::shouldClose() const {
 
 void Window::swapBuffers() {
     glfwSwapBuffers(handle_);
+}
+
+// 注册给glfwSetFramebufferSizeCallback()的静态函数（不访问成员变量），参数中的第一个不使用故仅写类型不写名称
+void Window::framebufferSizeCallback(GLFWwindow*, int width, int height) {
+    glViewport(0, 0, width, height);
+}
+
+// 更新OpenGL的绘图像素
+void Window::updateViewport() {
+    int width, height;
+    // 调用glfw借口获取像素尺寸
+    glfwGetFramebufferSize(handle_, &width, &height);
+    // 设置 viewport 的 x 为 0，y 为 0，宽为 width，高为 height
+    glViewport(0, 0, width, height);
 }

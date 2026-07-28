@@ -15,6 +15,10 @@ class Window {
     bool shouldClose() const;
     void swapBuffers();
 
+    void updateViewport();
+
   private:
     GLFWwindow* handle_ = nullptr;
+
+    static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 };
