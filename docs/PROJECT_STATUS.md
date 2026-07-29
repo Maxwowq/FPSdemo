@@ -12,24 +12,24 @@ Phase 1：单机 FPS 基础
 - 已通过 GLAD 加载现代 OpenGL API，可使用 VAO、VBO 和 Shader Program 绘制橙色三角形。
 - `GlfwRuntime`、`Window` 和 `ShaderProgram` 使用 RAII 管理资源生命周期。
 - `ShaderProgram` 支持 Shader 编译、Program 链接、错误日志和无效状态检查。
+- `ShaderProgram` 支持按名称上传 `mat4` uniform。
+- 可以使用 GLM 模型矩阵对物体应用平移变换，并在顶点着色器中完成顶点变换。
 - GLFW 3.4 与 GLM 1.0.3 已通过 CMake `FetchContent` 接入并固定版本。
 
 ## 当前任务
 
-建立 `mat4` uniform 从 CPU 传入 Shader 的最小工作流，用模型矩阵平移三角形。
+区分模型、观察和投影矩阵的职责，为后续加入基础观察矩阵和透视投影做准备。
 
 验收标准：
 
-- `ShaderProgram` 提供最小的 `mat4` uniform 设置接口。
-- 顶点着色器使用传入的模型矩阵。
-- 运行时可以看到三角形产生预期平移。
-- 修改后项目能够成功构建。
+- 能说明模型、观察和投影矩阵分别改变什么。
+- 能说明三种矩阵的组合顺序。
+- 明确下一步需要传入顶点着色器的矩阵及其职责。
 
 ## 后续任务
 
-1. 区分模型、观察和投影矩阵的职责。
-2. 加入基础观察矩阵和透视投影。
-3. 在此基础上开始 FPS 摄像机。
+1. 加入基础观察矩阵和透视投影。
+2. 在此基础上开始 FPS 摄像机。
 
 ## 当前实现决策
 

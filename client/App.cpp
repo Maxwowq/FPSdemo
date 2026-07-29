@@ -4,6 +4,8 @@
 #include "Window.h"
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/mat4x4.hpp>
 
 int App::run() {
     GlfwRuntime glfwRuntime;
@@ -54,8 +56,9 @@ int App::run() {
     // vertexshader源码
     constexpr const char* vertexShaderSource = R"(#version 330 core
         layout(location = 0) in vec3 aPosition;
+        uniform mat4 model;
         void main(){
-            gl_Position = vec4(aPosition, 1.0);
+            gl_Position = model * vec4(aPosition, 1.0);
         }
     )";
     // fragmentShader源码
@@ -73,8 +76,15 @@ int App::run() {
         return -1;
     }
 
+    // 创建单位矩阵
+    glm::mat4 model{1.0F};
+    // 平移x方向0.4F
+    model = glm::translate(model, glm::vec3{0.4F, 0.0F, 0.0F});
+
     // 启用shader program
     program.use();
+    // 调用setM4上传矩阵
+    program.setMat4("model", model);
 
     while (!window.shouldClose()) {
         glfwPollEvents();
