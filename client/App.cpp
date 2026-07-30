@@ -4,6 +4,7 @@
 #include "Window.h"
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
+#include <glm/geometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 
@@ -83,9 +84,12 @@ int App::run() {
     // 平移x方向0.4F
     model = glm::translate(model, glm::vec3{0.4F, 0.0F, 0.0F});
 
-    glm::mat4 view{1.0F};
-    // 将世界沿z轴平移-3（摄像机在0，0，3）
-    view = glm::translate(view, glm::vec3{0.0F, 0.0F, -3.0F});
+    // 摄像机位置
+    glm::vec3 cameraPosition{0.0F, 0.0F, 3.0F};
+    // 摄像机朝向（非坐标，而是向量）
+    glm::vec3 cameraFront{0.0F, 0.0F, -1.0F};
+    // 摄像机上方（向量）
+    glm::vec3 cameraUp{0.0F, 1.0F, 0.0F};
 
     // 垂直视野角45，长宽比800/600，近裁剪0.1，远裁剪100
     glm::mat4 projection = glm::perspective(glm::radians(45.0F), 800.0F / 600.0F, 0.1F, 100.0F);
@@ -94,11 +98,44 @@ int App::run() {
     program.use();
     // 调用setM4上传矩阵
     program.setMat4("model", model);
-    program.setMat4("view", view);
     program.setMat4("projection", projection);
+
+    // 初始时间记录
+    double lastFrameTime = glfwGetTime();
+    // 摄像机每秒移动世界单位数
+    const float cameraSpeed = 2.5F;
 
     while (!window.shouldClose()) {
         glfwPollEvents();
+
+        // 获取当前帧时间
+        const double currentFrameTime = glfwGetTime();
+        // 计算时间差
+        const float deltaTime = static_cast<float>(currentFrameTime - lastFrameTime);
+        // 更新lastFrameTime
+        lastFrameTime = currentFrameTime;
+        // 计算实际速率
+        const float cameraVelocity = cameraSpeed * deltaTime;
+
+        if (window.isKeyPressed(GLFW_KEY_W)) {
+            cameraPosition += cameraFront * cameraVelocity;
+        }
+        if (window.isKeyPressed(GLFW_KEY_S)) {
+            cameraPosition -= cameraFront * cameraVelocity;
+        }
+
+        // 计算右单位向量
+        const glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
+
+        if (window.isKeyPressed(GLFW_KEY_D)) {
+            cameraPosition += cameraRight * cameraVelocity;
+        }
+        if (window.isKeyPressed(GLFW_KEY_A)) {
+            cameraPosition -= cameraRight * cameraVelocity;
+        }
+
+        const glm::mat4 view = glm::lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
+        program.setMat4("view", view);
 
         glClearColor(0.1F, 0.15F, 0.2F, 1.0F);
         glClear(GL_COLOR_BUFFER_BIT);

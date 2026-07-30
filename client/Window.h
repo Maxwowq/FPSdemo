@@ -17,6 +17,8 @@ class Window {
 
     void updateViewport();
 
+    bool isKeyPressed(int key) const;
+
   private:
     GLFWwindow* handle_ = nullptr;
 

@@ -50,3 +50,8 @@ void Window::updateViewport() {
     // 设置 viewport 的 x 为 0，y 为 0，宽为 width，高为 height
     glViewport(0, 0, width, height);
 }
+
+// 判断按键是否按下
+bool Window::isKeyPressed(int key) const {
+    return glfwGetKey(handle_, key) == GLFW_PRESS;
+}
