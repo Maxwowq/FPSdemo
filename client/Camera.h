@@ -1,0 +1,28 @@
+#pragma once
+#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
+
+class Camera {
+  public:
+    Camera();
+
+    glm::mat4 viewMat() const;
+
+    void moveForward(float deltaTime);
+    void moveBackward(float deltaTime);
+    void moveLeft(float deltaTime);
+    void moveRight(float deltaTime);
+
+    void cameraRotation(double xShift, double yShift);
+
+  private:
+    glm::vec3 position_;
+    glm::vec3 front_;
+    glm::vec3 worldUp_;
+
+    float speed_;
+    float sensitivity_;
+
+    double yaw_;
+    double pitch_;
+};
