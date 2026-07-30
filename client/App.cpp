@@ -1,4 +1,5 @@
 #include "App.h"
+#include "Camera.h"
 #include "GlfwRuntime.h"
 #include "ShaderProgram.h"
 #include "Window.h"
@@ -80,10 +81,14 @@ int App::run() {
         return -1;
     }
 
-    // 创建model，view和projection矩阵
+    // 创建model矩阵
     glm::mat4 model{1.0F};
     // 平移x方向0.4F
     model = glm::translate(model, glm::vec3{0.4F, 0.0F, 0.0F});
+
+    // 创建projection矩阵
+    // 垂直视野角45，长宽比800/600，近裁剪0.1，远裁剪100
+    glm::mat4 projection = glm::perspective(glm::radians(45.0F), 800.0F / 600.0F, 0.1F, 100.0F);
 
     // 摄像机位置
     glm::vec3 cameraPosition{0.0F, 0.0F, 3.0F};
@@ -91,9 +96,12 @@ int App::run() {
     glm::vec3 cameraFront{0.0F, 0.0F, -1.0F};
     // 世界上方（向量）
     glm::vec3 worldUp{0.0F, 1.0F, 0.0F};
-
-    // 垂直视野角45，长宽比800/600，近裁剪0.1，远裁剪100
-    glm::mat4 projection = glm::perspective(glm::radians(45.0F), 800.0F / 600.0F, 0.1F, 100.0F);
+    // 每秒移动距离
+    const float cameraSpeed = 2.5F;
+    // 灵敏度
+    const float sensitivity = 0.1F;
+    // 创建摄像机对象
+    Camera camera{cameraPosition, cameraFront, worldUp, cameraSpeed, sensitivity};
 
     // 启用shader program
     program.use();
@@ -103,8 +111,6 @@ int App::run() {
 
     // 初始时间记录
     double lastFrameTime = glfwGetTime();
-    // 摄像机每秒移动世界单位数
-    const float cameraSpeed = 2.5F;
 
     // 设置鼠标状态为隐藏
     window.setCursorDisabled();
@@ -112,12 +118,6 @@ int App::run() {
     // 记录鼠标初始位置
     double lastCursorX, lastCursorY;
     window.getCursorPos(lastCursorX, lastCursorY);
-
-    // 记录初始yaw和pitch
-    double yaw = -90.0;
-    double pitch = 0.0;
-    // 设置灵敏度
-    const float sensitivity = 0.1F;
 
     while (!window.shouldClose()) {
         glfwPollEvents();
@@ -133,26 +133,8 @@ int App::run() {
         lastCursorX = currentCursorX;
         lastCursorY = currentCursorY;
 
-        // 计算yaw和pitch增量
-        yaw += xShift * sensitivity;
-        pitch += yShift * sensitivity;
-
-        // 确保pitch在-89到89之间
-        if (pitch > 89.0) {
-            pitch = 89.0;
-        } else if (pitch < -89.0) {
-            pitch = -89.0;
-        }
-
-        // 转为radians
-        const double yawRad = glm::radians(yaw);
-        const double pitchRad = glm::radians(pitch);
-
-        // 计算新的front
-        float frontX = static_cast<float>(cos(yawRad) * cos(pitchRad));
-        float frontZ = static_cast<float>(sin(yawRad) * cos(pitchRad));
-        float frontY = static_cast<float>(sin(pitchRad));
-        cameraFront = glm::normalize(glm::vec3(frontX, frontY, frontZ));
+        // 转动相机
+        camera.rotation(xShift, yShift);
 
         // 获取当前帧时间
         const double currentFrameTime = glfwGetTime();
@@ -160,27 +142,23 @@ int App::run() {
         const float deltaTime = static_cast<float>(currentFrameTime - lastFrameTime);
         // 更新lastFrameTime
         lastFrameTime = currentFrameTime;
-        // 计算实际速率
-        const float cameraVelocity = cameraSpeed * deltaTime;
 
+        // 前后左右平移
         if (window.isKeyPressed(GLFW_KEY_W)) {
-            cameraPosition += cameraFront * cameraVelocity;
+            camera.moveForward(deltaTime);
         }
         if (window.isKeyPressed(GLFW_KEY_S)) {
-            cameraPosition -= cameraFront * cameraVelocity;
+            camera.moveBackward(deltaTime);
         }
-
-        // 计算右单位向量
-        const glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, worldUp));
-
         if (window.isKeyPressed(GLFW_KEY_D)) {
-            cameraPosition += cameraRight * cameraVelocity;
+            camera.moveRight(deltaTime);
         }
         if (window.isKeyPressed(GLFW_KEY_A)) {
-            cameraPosition -= cameraRight * cameraVelocity;
+            camera.moveLeft(deltaTime);
         }
 
-        const glm::mat4 view = glm::lookAt(cameraPosition, cameraPosition + cameraFront, worldUp);
+        // 导出view矩阵
+        const glm::mat4 view = camera.viewMat();
         program.setMat4("view", view);
 
         glClearColor(0.1F, 0.15F, 0.2F, 1.0F);

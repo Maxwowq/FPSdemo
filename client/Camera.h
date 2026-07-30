@@ -4,7 +4,7 @@
 
 class Camera {
   public:
-    Camera();
+    Camera(glm::vec3 position, glm::vec3 front, glm::vec3 worldUp, float speed, float sensitivity);
 
     glm::mat4 viewMat() const;
 
@@ -13,7 +13,7 @@ class Camera {
     void moveLeft(float deltaTime);
     void moveRight(float deltaTime);
 
-    void cameraRotation(double xShift, double yShift);
+    void rotation(double xShift, double yShift);
 
   private:
     glm::vec3 position_;
@@ -25,4 +25,6 @@ class Camera {
 
     double yaw_;
     double pitch_;
+
+    glm::vec3 right_() const;
 };
