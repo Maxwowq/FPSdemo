@@ -122,20 +122,6 @@ int App::run() {
     while (!window.shouldClose()) {
         glfwPollEvents();
 
-        // 获取当前鼠标位置
-        double currentCursorX, currentCursorY;
-        window.getCursorPos(currentCursorX, currentCursorY);
-        // 计算偏移量
-        const double xShift = currentCursorX - lastCursorX;
-        // Y轴反向计算，原因是窗口的Y定义和空间的Y定义反向
-        const double yShift = lastCursorY - currentCursorY;
-        // 更新鼠标位置
-        lastCursorX = currentCursorX;
-        lastCursorY = currentCursorY;
-
-        // 转动相机
-        camera.rotation(xShift, yShift);
-
         // 获取当前帧时间
         const double currentFrameTime = glfwGetTime();
         // 计算时间差
@@ -143,18 +129,47 @@ int App::run() {
         // 更新lastFrameTime
         lastFrameTime = currentFrameTime;
 
-        // 前后左右平移
-        if (window.isKeyPressed(GLFW_KEY_W)) {
-            camera.moveForward(deltaTime);
+        // 若当前cursor是隐藏状态
+        if (window.isCursorDisabled()) {
+            // 获取当前鼠标位置
+            double currentCursorX, currentCursorY;
+            window.getCursorPos(currentCursorX, currentCursorY);
+            // 计算偏移量
+            const double xShift = currentCursorX - lastCursorX;
+            // Y轴反向计算，原因是窗口的Y定义和空间的Y定义反向
+            const double yShift = lastCursorY - currentCursorY;
+            // 更新鼠标位置
+            lastCursorX = currentCursorX;
+            lastCursorY = currentCursorY;
+
+            // 转动相机
+            camera.rotation(xShift, yShift);
+
+            // 前后左右平移
+            if (window.isKeyPressed(GLFW_KEY_W)) {
+                camera.moveForward(deltaTime);
+            }
+            if (window.isKeyPressed(GLFW_KEY_S)) {
+                camera.moveBackward(deltaTime);
+            }
+            if (window.isKeyPressed(GLFW_KEY_D)) {
+                camera.moveRight(deltaTime);
+            }
+            if (window.isKeyPressed(GLFW_KEY_A)) {
+                camera.moveLeft(deltaTime);
+            }
+
+            // 若按下ESC，则启用鼠标
+            if (window.isKeyPressed(GLFW_KEY_ESCAPE)) {
+                window.setCursorNormal();
+            }
         }
-        if (window.isKeyPressed(GLFW_KEY_S)) {
-            camera.moveBackward(deltaTime);
-        }
-        if (window.isKeyPressed(GLFW_KEY_D)) {
-            camera.moveRight(deltaTime);
-        }
-        if (window.isKeyPressed(GLFW_KEY_A)) {
-            camera.moveLeft(deltaTime);
+        // 若在启用状态按下左键
+        else if (window.isMousePressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            // 则隐藏鼠标
+            window.setCursorDisabled();
+            // 重置鼠标起点位置
+            window.getCursorPos(lastCursorX, lastCursorY);
         }
 
         // 导出view矩阵

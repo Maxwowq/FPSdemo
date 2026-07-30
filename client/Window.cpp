@@ -56,17 +56,28 @@ bool Window::isKeyPressed(int key) const {
     return glfwGetKey(handle_, key) == GLFW_PRESS;
 }
 
+// 判断鼠标是否按下
+bool Window::isMousePressed(int key) const {
+    return glfwGetMouseButton(handle_, key) == GLFW_PRESS;
+}
+
 // 设置鼠标mode
 void Window::setCursorDisabled() {
     glfwSetInputMode(handle_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    cursorDisabled_ = true;
 }
 
 // 设置鼠标为normal
 void Window::setCursorNormal() {
     glfwSetInputMode(handle_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    cursorDisabled_ = false;
 }
 
 // 查询光标位置
 void Window::getCursorPos(double& xPosition, double& yPosition) const {
     glfwGetCursorPos(handle_, &xPosition, &yPosition);
+}
+
+bool Window::isCursorDisabled() const {
+    return cursorDisabled_;
 }

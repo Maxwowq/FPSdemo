@@ -18,13 +18,18 @@ class Window {
     void updateViewport();
 
     bool isKeyPressed(int key) const;
+    bool isMousePressed(int key) const;
 
     void setCursorDisabled();
     void setCursorNormal();
     void getCursorPos(double& xPosition, double& yPosition) const;
 
+    bool isCursorDisabled() const;
+
   private:
     GLFWwindow* handle_ = nullptr;
+
+    bool cursorDisabled_ = false;
 
     static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 };
