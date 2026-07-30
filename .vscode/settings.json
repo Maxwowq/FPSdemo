@@ -11,7 +11,8 @@
   "files.insertFinalNewline": true,
   "C_Cpp.intelliSenseEngine": "disabled",
   "clangd.arguments": [
-    "--compile-commands-dir=build"
+    "--compile-commands-dir=build",
+    "--header-insertion=never"
   ],
   "cmake.generator": "Ninja"
 }
