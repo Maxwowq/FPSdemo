@@ -57,8 +57,10 @@ int App::run() {
     constexpr const char* vertexShaderSource = R"(#version 330 core
         layout(location = 0) in vec3 aPosition;
         uniform mat4 model;
+        uniform mat4 view;
+        uniform mat4 projection;
         void main(){
-            gl_Position = model * vec4(aPosition, 1.0);
+            gl_Position = projection * view * model * vec4(aPosition, 1.0);
         }
     )";
     // fragmentShader源码
@@ -76,15 +78,24 @@ int App::run() {
         return -1;
     }
 
-    // 创建单位矩阵
+    // 创建model，view和projection矩阵
     glm::mat4 model{1.0F};
     // 平移x方向0.4F
     model = glm::translate(model, glm::vec3{0.4F, 0.0F, 0.0F});
+
+    glm::mat4 view{1.0F};
+    // 将世界沿z轴平移-3（摄像机在0，0，3）
+    view = glm::translate(view, glm::vec3{0.0F, 0.0F, -3.0F});
+
+    // 垂直视野角45，长宽比800/600，近裁剪0.1，远裁剪100
+    glm::mat4 projection = glm::perspective(glm::radians(45.0F), 800.0F / 600.0F, 0.1F, 100.0F);
 
     // 启用shader program
     program.use();
     // 调用setM4上传矩阵
     program.setMat4("model", model);
+    program.setMat4("view", view);
+    program.setMat4("projection", projection);
 
     while (!window.shouldClose()) {
         glfwPollEvents();
