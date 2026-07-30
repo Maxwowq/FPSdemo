@@ -32,11 +32,38 @@ int App::run() {
 
     // 先makeContextCurrent再update，因为OpenGL更新的是当前窗口
     window.updateViewport();
+    // 开启深度测试
+    glEnable(GL_DEPTH_TEST);
+    // 设置刷新率
     glfwSwapInterval(1);
 
+    // clang-format off
     const float vertices[] = {
-        -0.5F, -0.5F, 0.0F, 0.5F, -0.5F, 0.0F, 0.0F, 0.5F, 0.0F,
+        // 前面
+        -0.5F, -0.5F, 0.0F, 0.5F,  -0.5F, 0.0F, 0.5F,  0.5F,  0.0F,
+        0.5F,  0.5F,  0.0F, -0.5F, 0.5F,  0.0F, -0.5F, -0.5F, 0.0F,
+
+        // 后面
+        -0.5F, -0.5F, -1.0F, -0.5F, 0.5F,  -1.0F, 0.5F,  0.5F,  -1.0F,
+        0.5F,  0.5F,  -1.0F, 0.5F,  -0.5F, -1.0F, -0.5F, -0.5F, -1.0F,
+
+        // 左面
+        -0.5F, 0.5F,  0.0F,  -0.5F, 0.5F,  -1.0F, -0.5F, -0.5F, -1.0F,
+        -0.5F, -0.5F, -1.0F, -0.5F, -0.5F, 0.0F,  -0.5F, 0.5F,  0.0F,
+
+        // 右面
+        0.5F,  0.5F,  0.0F,  0.5F,  -0.5F, 0.0F,  0.5F,  -0.5F, -1.0F,
+        0.5F,  -0.5F, -1.0F, 0.5F,  0.5F,  -1.0F, 0.5F,  0.5F,  0.0F,
+
+        // 上面
+        -0.5F, 0.5F, -1.0F, -0.5F, 0.5F, 0.0F, 0.5F, 0.5F, 0.0F,
+        0.5F,  0.5F, 0.0F,  0.5F,  0.5F, -1.0F, -0.5F, 0.5F, -1.0F,
+
+        // 下面
+        -0.5F, -0.5F, -1.0F, 0.5F,  -0.5F, -1.0F, 0.5F,  -0.5F, 0.0F,
+        0.5F,  -0.5F, 0.0F,  -0.5F, -0.5F, 0.0F,  -0.5F, -0.5F, -1.0F,
     };
+    // clang-format on
 
     // VAO和VBO对象
     GLuint vao = 0;
@@ -177,12 +204,12 @@ int App::run() {
         program.setMat4("view", view);
 
         glClearColor(0.1F, 0.15F, 0.2F, 1.0F);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // 先绑定对应vao
         glBindVertexArray(vao);
         // 绘制命令
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         window.swapBuffers();
     }
