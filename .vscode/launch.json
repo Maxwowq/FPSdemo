@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug fps_client",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/fps_client",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "CMake: Build"
+    }
+  ]
+}
