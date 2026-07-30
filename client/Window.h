@@ -19,6 +19,10 @@ class Window {
 
     bool isKeyPressed(int key) const;
 
+    void setCursorDisabled();
+    void setCursorNormal();
+    void getCursorPos(double& xPosition, double& yPosition) const;
+
   private:
     GLFWwindow* handle_ = nullptr;
 

@@ -55,3 +55,18 @@ void Window::updateViewport() {
 bool Window::isKeyPressed(int key) const {
     return glfwGetKey(handle_, key) == GLFW_PRESS;
 }
+
+// 设置鼠标mode
+void Window::setCursorDisabled() {
+    glfwSetInputMode(handle_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
+// 设置鼠标为normal
+void Window::setCursorNormal() {
+    glfwSetInputMode(handle_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
+// 查询光标位置
+void Window::getCursorPos(double& xPosition, double& yPosition) const {
+    glfwGetCursorPos(handle_, &xPosition, &yPosition);
+}
