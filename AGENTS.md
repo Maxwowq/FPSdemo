@@ -17,6 +17,18 @@
 - 跨平台代码必须同时考虑 Windows/MSVC 与 macOS/Apple Clang。
 - 使用 Python 时优先使用 `uv`，但尊重仓库已有工作流。
 
+## Windows 环境约定
+
+- 仓库文本文件统一按 UTF-8 读取和写入。Windows PowerShell 5.1 的默认代码页可能是
+  GBK；读取中文文件时必须显式指定 UTF-8，并在需要展示中文输出时将控制台输出编码和
+  `$OutputEncoding` 设置为 UTF-8，不能根据乱码内容判断文件已损坏。
+- 当前终端找不到 `cmake`、`ninja` 或 MSVC 时，不应直接判定环境无法构建。优先检查已有
+  `build/CMakeCache.txt`，使用其中记录的 `CMAKE_COMMAND`、`CMAKE_MAKE_PROGRAM` 和
+  编译器绝对路径；已有构建目录应优先通过缓存所记录的 CMake 执行
+  `cmake --build build --target fps_client`。
+- 只有在缓存不存在、记录的工具路径失效，或实际构建命令失败后，才将工具链视为未配置，
+  并清楚报告具体缺失项或错误信息。
+
 ## 开发路线
 
 1. 单机基础：窗口、FPS 摄像机、输入、简单碰撞与射线射击。
