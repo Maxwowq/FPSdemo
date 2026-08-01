@@ -3,9 +3,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 // 输入camera的初始位置和朝向，以及up，速率和灵敏度
-Camera::Camera(glm::vec3 position, glm::vec3 front, glm::vec3 worldUp, float speed,
-               float sensitivity)
-    : position_(position), front_(glm::normalize(front)), worldUp_(worldUp), speed_(speed),
+Camera::Camera(glm::vec3 position, glm::vec3 front, glm::vec3 worldUp, float sensitivity)
+    : position_(position), front_(glm::normalize(front)), worldUp_(worldUp),
       sensitivity_(sensitivity) {
     // 计算初始的yaw和pitch
     yaw_ = glm::degrees(atan2(front_.z, front_.x));
@@ -16,27 +15,6 @@ Camera::Camera(glm::vec3 position, glm::vec3 front, glm::vec3 worldUp, float spe
     } else if (pitch_ < -89.0F) {
         pitch_ = -89.0;
     }
-}
-
-// 私有函数，计算right向量
-glm::vec3 Camera::right_() const {
-    return glm::normalize(glm::cross(front_, worldUp_));
-}
-
-void Camera::moveForward(float deltaTime) {
-    position_ += front_ * speed_ * deltaTime;
-}
-
-void Camera::moveBackward(float deltaTime) {
-    position_ -= front_ * speed_ * deltaTime;
-}
-
-void Camera::moveLeft(float deltaTime) {
-    position_ -= right_() * speed_ * deltaTime;
-}
-
-void Camera::moveRight(float deltaTime) {
-    position_ += right_() * speed_ * deltaTime;
 }
 
 // 根据鼠标的xy位移计算镜头的front_
@@ -65,4 +43,25 @@ void Camera::rotation(double xShift, double yShift) {
 // 返回镜头的view矩阵
 glm::mat4 Camera::viewMat() const {
     return glm::lookAt(position_, position_ + front_, worldUp_);
+}
+
+// 提供camera当前的position
+glm::vec3 Camera::position() const {
+    return position_;
+}
+
+// 提供camera的forward方向（即忽略y分量的前方）
+glm::vec3 Camera::forwardOnGround() const {
+    glm::vec3 forward{front_.x, 0.0F, front_.z};
+    return glm::normalize(forward);
+}
+
+// 提供camera的right方向
+glm::vec3 Camera::rightOnGround() const {
+    return glm::normalize(glm::cross(front_, worldUp_));
+}
+
+// 根据位移移动
+void Camera::move(const glm::vec3& displacement) {
+    position_ += displacement;
 }

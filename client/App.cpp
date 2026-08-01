@@ -139,7 +139,7 @@ int App::run() {
     const Box ground{{0.0F, -2.5F, -50.0F}, {100.0F, 1.0F, 100.0F}, {0.22F, 0.27F, 0.24F}};
 
     // 摄像机位置
-    glm::vec3 cameraPosition{0.0F, 0.0F, 3.0F};
+    glm::vec3 cameraPosition{0.0F, -1.0F, 3.0F};
     // 摄像机朝向（非坐标，而是向量）
     glm::vec3 cameraFront{0.0F, 0.0F, -1.0F};
     // 世界上方（向量）
@@ -149,7 +149,7 @@ int App::run() {
     // 灵敏度
     const float sensitivity = 0.1F;
     // 创建摄像机对象
-    Camera camera{cameraPosition, cameraFront, worldUp, cameraSpeed, sensitivity};
+    Camera camera{cameraPosition, cameraFront, worldUp, sensitivity};
 
     // 启用shader program
     program.use();
@@ -190,18 +190,27 @@ int App::run() {
             // 转动相机
             camera.rotation(xShift, yShift);
 
-            // 前后左右平移
+            // 初始化移动方向
+            glm::vec3 moveDirection{0.0F};
+            // 计算累积移动方向
             if (window.isKeyPressed(GLFW_KEY_W)) {
-                camera.moveForward(deltaTime);
+                moveDirection += camera.forwardOnGround();
             }
             if (window.isKeyPressed(GLFW_KEY_S)) {
-                camera.moveBackward(deltaTime);
+                moveDirection -= camera.forwardOnGround();
             }
             if (window.isKeyPressed(GLFW_KEY_D)) {
-                camera.moveRight(deltaTime);
+                moveDirection += camera.rightOnGround();
             }
             if (window.isKeyPressed(GLFW_KEY_A)) {
-                camera.moveLeft(deltaTime);
+                moveDirection -= camera.rightOnGround();
+            }
+            // 若移动方向非零
+            if (moveDirection != glm::vec3{0.0F}) {
+                // 计算位移
+                glm::vec3 displacement = cameraSpeed * deltaTime * glm::normalize(moveDirection);
+                // 移动相机
+                camera.move(displacement);
             }
 
             // 若按下ESC，则启用鼠标
