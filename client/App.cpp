@@ -114,10 +114,6 @@ int App::run() {
         {0.0F, -1.5F, -6.0F}, {2.0F, 1.0F, -8.0F},
     };
 
-    // 创建projection矩阵
-    // 垂直视野角45，长宽比800/600，近裁剪0.1，远裁剪100
-    glm::mat4 projection = glm::perspective(glm::radians(45.0F), 800.0F / 600.0F, 0.1F, 100.0F);
-
     // 摄像机位置
     glm::vec3 cameraPosition{0.0F, 0.0F, 3.0F};
     // 摄像机朝向（非坐标，而是向量）
@@ -133,8 +129,6 @@ int App::run() {
 
     // 启用shader program
     program.use();
-    // 调用setM4上传projection矩阵
-    program.setMat4("projection", projection);
 
     // 初始时间记录
     double lastFrameTime = glfwGetTime();
@@ -203,21 +197,37 @@ int App::run() {
         const glm::mat4 view = camera.viewMat();
         program.setMat4("view", view);
 
+        // 设置清除颜色
         glClearColor(0.1F, 0.15F, 0.2F, 1.0F);
+        // 清除颜色和深度缓存
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // 先绑定对应vao
         glBindVertexArray(vao);
 
-        for (int i = 0; i < 5; i++) {
-            // 创建单位矩阵
-            glm::mat4 model{1.0F};
-            // 计算model矩阵
-            model = glm::translate(model, coords[i]);
-            // 上传model矩阵
-            program.setMat4("model", model);
-            // 绘制命令
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+        // 获取frambuffersize
+        int width, height;
+        window.getFramebufferSize(width, height);
+        // 仅在height和width大于0的情况绘图
+        if (height > 0 && width > 0) {
+            const float aspect = static_cast<float>(width) / static_cast<float>(height);
+
+            // 创建projection矩阵
+            glm::mat4 projection = glm::perspective(glm::radians(45.0F), aspect, 0.1F, 100.0F);
+
+            // 上传矩阵
+            program.setMat4("projection", projection);
+
+            for (int i = 0; i < 5; i++) {
+                // 创建单位矩阵
+                glm::mat4 model{1.0F};
+                // 计算model矩阵
+                model = glm::translate(model, coords[i]);
+                // 上传model矩阵
+                program.setMat4("model", model);
+                // 绘制命令
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+            }
         }
 
         window.swapBuffers();

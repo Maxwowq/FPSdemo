@@ -26,6 +26,8 @@ class Window {
 
     bool isCursorDisabled() const;
 
+    void getFramebufferSize(int& width, int& height) const;
+
   private:
     GLFWwindow* handle_ = nullptr;
 

@@ -78,6 +78,12 @@ void Window::getCursorPos(double& xPosition, double& yPosition) const {
     glfwGetCursorPos(handle_, &xPosition, &yPosition);
 }
 
+// 查询光标状态
 bool Window::isCursorDisabled() const {
     return cursorDisabled_;
+}
+
+// 查询FrameBufferSize
+void Window::getFramebufferSize(int& width, int& height) const {
+    glfwGetFramebufferSize(handle_, &width, &height);
 }
