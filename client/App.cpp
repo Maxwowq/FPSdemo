@@ -10,6 +10,24 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 
+namespace {
+struct Box {
+    glm::vec3 center;
+    glm::vec3 size{1.0F, 1.0F, 1.0F};
+    glm::vec3 color;
+};
+
+void drawBox(const ShaderProgram& program, const Box& box) {
+    glm::mat4 model{1.0F};
+    model = glm::translate(model, box.center);
+    model = glm::scale(model, box.size);
+    program.setMat4("model", model);
+    program.setVec3("objectColor", box.color);
+
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+} // namespace
+
 int App::run() {
     GlfwRuntime glfwRuntime;
     if (!glfwRuntime.isInitialized()) {
@@ -40,28 +58,28 @@ int App::run() {
     // clang-format off
     const float vertices[] = {
         // 前面
-        -0.5F, -0.5F, 0.0F, 0.5F,  -0.5F, 0.0F, 0.5F,  0.5F,  0.0F,
-        0.5F,  0.5F,  0.0F, -0.5F, 0.5F,  0.0F, -0.5F, -0.5F, 0.0F,
+        -0.5F, -0.5F, 0.5F, 0.5F,  -0.5F, 0.5F, 0.5F,  0.5F,  0.5F,
+        0.5F,  0.5F,  0.5F, -0.5F, 0.5F,  0.5F, -0.5F, -0.5F, 0.5F,
 
         // 后面
-        -0.5F, -0.5F, -1.0F, -0.5F, 0.5F,  -1.0F, 0.5F,  0.5F,  -1.0F,
-        0.5F,  0.5F,  -1.0F, 0.5F,  -0.5F, -1.0F, -0.5F, -0.5F, -1.0F,
+        -0.5F, -0.5F, -0.5F, -0.5F, 0.5F,  -0.5F, 0.5F,  0.5F,  -0.5F,
+        0.5F,  0.5F,  -0.5F, 0.5F,  -0.5F, -0.5F, -0.5F, -0.5F, -0.5F,
 
         // 左面
-        -0.5F, 0.5F,  0.0F,  -0.5F, 0.5F,  -1.0F, -0.5F, -0.5F, -1.0F,
-        -0.5F, -0.5F, -1.0F, -0.5F, -0.5F, 0.0F,  -0.5F, 0.5F,  0.0F,
+        -0.5F, 0.5F,  0.5F,  -0.5F, 0.5F,  -0.5F, -0.5F, -0.5F, -0.5F,
+        -0.5F, -0.5F, -0.5F, -0.5F, -0.5F, 0.5F,  -0.5F, 0.5F,  0.5F,
 
         // 右面
-        0.5F,  0.5F,  0.0F,  0.5F,  -0.5F, 0.0F,  0.5F,  -0.5F, -1.0F,
-        0.5F,  -0.5F, -1.0F, 0.5F,  0.5F,  -1.0F, 0.5F,  0.5F,  0.0F,
+        0.5F,  0.5F,  0.5F,  0.5F,  -0.5F, 0.5F,  0.5F,  -0.5F, -0.5F,
+        0.5F,  -0.5F, -0.5F, 0.5F,  0.5F,  -0.5F, 0.5F,  0.5F,  0.5F,
 
         // 上面
-        -0.5F, 0.5F, -1.0F, -0.5F, 0.5F, 0.0F, 0.5F, 0.5F, 0.0F,
-        0.5F,  0.5F, 0.0F,  0.5F,  0.5F, -1.0F, -0.5F, 0.5F, -1.0F,
+        -0.5F, 0.5F, -0.5F, -0.5F, 0.5F, 0.5F, 0.5F, 0.5F, 0.5F,
+        0.5F,  0.5F, 0.5F,  0.5F,  0.5F, -0.5F, -0.5F, 0.5F, -0.5F,
 
         // 下面
-        -0.5F, -0.5F, -1.0F, 0.5F,  -0.5F, -1.0F, 0.5F,  -0.5F, 0.0F,
-        0.5F,  -0.5F, 0.0F,  -0.5F, -0.5F, 0.0F,  -0.5F, -0.5F, -1.0F,
+        -0.5F, -0.5F, -0.5F, 0.5F,  -0.5F, -0.5F, 0.5F,  -0.5F, 0.5F,
+        0.5F,  -0.5F, 0.5F,  -0.5F, -0.5F, 0.5F,  -0.5F, -0.5F, -0.5F,
     };
     // clang-format on
 
@@ -96,8 +114,9 @@ int App::run() {
     // fragmentShader源码
     constexpr const char* fragmentShaderSource = R"(#version 330 core
         out vec4 fragmentColor;
+        uniform vec3 objectColor;
         void main(){
-            fragmentColor = vec4(1.0, 0.5, 0.2, 1.0);
+            fragmentColor = vec4(objectColor, 1.0);
         }
     )";
 
@@ -108,11 +127,16 @@ int App::run() {
         return -1;
     }
 
-    // 创建5个立方体的坐标
-    const glm::vec3 coords[] = {
-        {0.0F, 0.0F, 0.0F},   {1.5F, 0.0F, -2.0F}, {-1.5F, 0.5F, -4.0F},
-        {0.0F, -1.5F, -6.0F}, {2.0F, 1.0F, -8.0F},
+    // 立方体网格以局部原点为中心，Box 的 center 和 size 可同时用于渲染与碰撞。
+    const Box boxes[] = {
+        {{0.0F, 0.0F, -0.5F}, {1.0F, 1.0F, 1.0F}, {1.00F, 0.35F, 0.20F}},
+        {{1.5F, 0.0F, -2.5F}, {1.0F, 1.0F, 1.0F}, {0.20F, 0.65F, 1.00F}},
+        {{-1.5F, 0.5F, -4.5F}, {1.0F, 1.0F, 1.0F}, {0.35F, 0.85F, 0.40F}},
+        {{0.0F, -1.5F, -6.5F}, {1.0F, 1.0F, 1.0F}, {0.85F, 0.35F, 0.90F}},
+        {{2.0F, 1.0F, -8.5F}, {1.0F, 1.0F, 1.0F}, {1.00F, 0.80F, 0.20F}},
     };
+    // 保持原有地面的世界空间范围：X [-50, 50]、Y [-3, -2]、Z [-100, 0]。
+    const Box ground{{0.0F, -2.5F, -50.0F}, {100.0F, 1.0F, 100.0F}, {0.22F, 0.27F, 0.24F}};
 
     // 摄像机位置
     glm::vec3 cameraPosition{0.0F, 0.0F, 3.0F};
@@ -214,20 +238,14 @@ int App::run() {
 
             // 创建projection矩阵
             glm::mat4 projection = glm::perspective(glm::radians(45.0F), aspect, 0.1F, 100.0F);
-
-            // 上传矩阵
+            // 上传projection矩阵
             program.setMat4("projection", projection);
 
-            for (int i = 0; i < 5; i++) {
-                // 创建单位矩阵
-                glm::mat4 model{1.0F};
-                // 计算model矩阵
-                model = glm::translate(model, coords[i]);
-                // 上传model矩阵
-                program.setMat4("model", model);
-                // 绘制命令
-                glDrawArrays(GL_TRIANGLES, 0, 36);
+            for (const Box& box : boxes) {
+                drawBox(program, box);
             }
+
+            drawBox(program, ground);
         }
 
         window.swapBuffers();

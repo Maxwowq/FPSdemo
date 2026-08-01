@@ -52,6 +52,10 @@ if(APPLE)
     target_compile_definitions(fps_client PRIVATE GL_SILENCE_DEPRECATION)
 endif()
 
+if(MSVC)
+    target_compile_options(fps_client PRIVATE /utf-8)
+endif()
+
 target_compile_definitions(fps_client PRIVATE GLFW_INCLUDE_NONE)
 
 target_compile_features(fps_client PRIVATE cxx_std_20)

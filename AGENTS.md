@@ -24,8 +24,10 @@
   `$OutputEncoding` 设置为 UTF-8，不能根据乱码内容判断文件已损坏。
 - 当前终端找不到 `cmake`、`ninja` 或 MSVC 时，不应直接判定环境无法构建。优先检查已有
   `build/CMakeCache.txt`，使用其中记录的 `CMAKE_COMMAND`、`CMAKE_MAKE_PROGRAM` 和
-  编译器绝对路径；已有构建目录应优先通过缓存所记录的 CMake 执行
-  `cmake --build build --target fps_client`。
+  编译器绝对路径。Windows 上真正重新编译前必须先调用当前 Visual Studio Build Tools 的
+  `VsDevCmd.bat`（x64），确保 MSVC 标准库和 Windows SDK 环境已加载；然后通过缓存所记录的
+  CMake 执行 `cmake --build build --target fps_client`。仅在 Ninja 报告无工作时，未加载开发
+  环境的构建命令才可能表面成功。
 - 只有在缓存不存在、记录的工具路径失效，或实际构建命令失败后，才将工具链视为未配置，
   并清楚报告具体缺失项或错误信息。
 

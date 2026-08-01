@@ -121,3 +121,15 @@ void ShaderProgram::setMat4(const char* name, const glm::mat4& value) const {
     // 上传矩阵
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
+
+void ShaderProgram::setVec3(const char* name, const glm::vec3& value) const {
+    // 查找uniform地址
+    const GLint location = glGetUniformLocation(program, name);
+    if (location == -1) {
+        std::cerr << "Error: Uniform " << name << " location not found";
+        return;
+    }
+
+    // 上传向量
+    glUniform3fv(location, 1, glm::value_ptr(value));
+}

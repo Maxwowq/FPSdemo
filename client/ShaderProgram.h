@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/gl.h>
 #include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 
 class ShaderProgram {
   public:
@@ -12,6 +13,7 @@ class ShaderProgram {
     bool isValid() const;
 
     void setMat4(const char* name, const glm::mat4& value) const;
+    void setVec3(const char* name, const glm::vec3& value) const;
 
     ShaderProgram(const ShaderProgram&) = delete;
     ShaderProgram& operator=(const ShaderProgram&) = delete;
