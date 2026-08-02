@@ -1,6 +1,7 @@
 #include "App.h"
 #include "Camera.h"
 #include "GlfwRuntime.h"
+#include "Mesh.h"
 #include "ShaderProgram.h"
 #include "Window.h"
 #include <GLFW/glfw3.h>
@@ -9,6 +10,7 @@
 #include <glm/geometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
+#include <span>
 
 namespace {
 struct Box {
@@ -17,15 +19,96 @@ struct Box {
     glm::vec3 color;
 };
 
-void drawBox(const ShaderProgram& program, const Box& box) {
+void drawBox(const ShaderProgram& program, const Box& box, const Mesh& boxMesh,
+             const Mesh& lineMesh) {
     glm::mat4 model{1.0F};
     model = glm::translate(model, box.center);
     model = glm::scale(model, box.size);
     program.setMat4("model", model);
     program.setVec3("objectColor", box.color);
 
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    boxMesh.drawArrays();
+
+    program.setVec3("objectColor", {0.0F, 0.0F, 0.0F});
+    lineMesh.drawArrays();
 }
+
+struct Aabb {
+    glm::vec3 min;
+    glm::vec3 max;
+};
+
+bool overlaps(const Aabb& a, const Aabb& b) {
+    return a.max.x > b.min.x && a.min.x < b.max.x && a.max.y > b.min.y && a.min.y < b.max.y &&
+           a.max.z > b.min.z && a.min.z < b.max.z;
+}
+
+// 从box结构体制造Aabb
+Aabb makeAabb(const Box& box) {
+    return Aabb{box.center - box.size / 2.0F, box.center + box.size / 2.0F};
+}
+
+// 从摄像机位置制造玩家Aabb，玩家的size固定
+Aabb makePlayerAabb(const glm::vec3& cameraPosition) {
+    glm::vec3 min = cameraPosition + glm::vec3{-0.3F, -1.0F, -0.3F};
+    glm::vec3 max = cameraPosition + glm::vec3{0.3F, 0.8F, 0.3F};
+    return Aabb{min, max};
+}
+
+// 遍历所有box判断是否有重叠
+bool overlapsAnyBox(const Aabb& playerAabb, std::span<const Box> boxes) {
+    for (const Box& box : boxes) {
+        const Aabb boxAabb = makeAabb(box);
+        if (overlaps(boxAabb, playerAabb)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// 处理碰撞位移
+glm::vec3 resolveHorizontalDisplacement(glm::vec3 displacement, const glm::vec3& cameraPosition,
+                                        std::span<const Box> boxes) {
+    // 先尝试x方向位移
+    Aabb playerAabb = makePlayerAabb(cameraPosition + glm::vec3{displacement.x, 0.0F, 0.0F});
+    // 若发生碰撞
+    if (overlapsAnyBox(playerAabb, boxes)) {
+        // 取消x方向位移
+        displacement.x = 0.0F;
+    }
+    // 再尝试结合z方向位移
+    playerAabb = makePlayerAabb(cameraPosition + displacement);
+    // 若发生碰撞
+    if (overlapsAnyBox(playerAabb, boxes)) {
+        // 取消z方向位移
+        displacement.z = 0.0F;
+    }
+
+    // 返回处理后的位移
+    return displacement;
+}
+
+// 拆分子步法计算碰撞位移
+glm::vec3 miniStepDisplacement(glm::vec3 displacement, glm::vec3 cameraPosition,
+                               std::span<const Box> boxes, const float stepLength = 0.1F) {
+    // 计算拆分数量
+    int stepNum = static_cast<int>(glm::length((displacement) / stepLength)) + 1;
+    // 拆分位移
+    glm::vec3 miniDisplacement = displacement / static_cast<float>(stepNum);
+
+    // 逐步计算
+    glm::vec3 finalDisplacement{0.0F};
+    for (int step = 0; step < stepNum; step++) {
+        glm::vec3 stepDisplacement =
+            resolveHorizontalDisplacement(miniDisplacement, cameraPosition, boxes);
+        cameraPosition += stepDisplacement;
+        finalDisplacement += stepDisplacement;
+    }
+
+    return finalDisplacement;
+}
+
 } // namespace
 
 int App::run() {
@@ -56,6 +139,7 @@ int App::run() {
     glfwSwapInterval(1);
 
     // clang-format off
+    // 立方体顶点数组
     const float vertices[] = {
         // 前面
         -0.5F, -0.5F, 0.5F, 0.5F,  -0.5F, 0.5F, 0.5F,  0.5F,  0.5F,
@@ -81,25 +165,30 @@ int App::run() {
         -0.5F, -0.5F, -0.5F, 0.5F,  -0.5F, -0.5F, 0.5F,  -0.5F, 0.5F,
         0.5F,  -0.5F, 0.5F,  -0.5F, -0.5F, 0.5F,  -0.5F, -0.5F, -0.5F,
     };
+    // 立方体描边数组
+    const float lines[] = {
+        // 连接前后两个面的四条边
+        0.5F,  0.5F,  0.5F,  0.5F,  0.5F,  -0.5F,
+        0.5F,  -0.5F, 0.5F,  0.5F,  -0.5F, -0.5F,
+        -0.5F, 0.5F,  0.5F,  -0.5F, 0.5F,  -0.5F,
+        -0.5F, -0.5F, 0.5F,  -0.5F, -0.5F, -0.5F,
+
+        // 前面的四条边
+        -0.5F, -0.5F, 0.5F,  0.5F,  -0.5F, 0.5F,
+        0.5F,  -0.5F, 0.5F,  0.5F,  0.5F,  0.5F,
+        0.5F,  0.5F,  0.5F,  -0.5F, 0.5F,  0.5F,
+        -0.5F, 0.5F,  0.5F,  -0.5F, -0.5F, 0.5F,
+
+        // 后面的四条边
+        -0.5F, -0.5F, -0.5F, 0.5F,  -0.5F, -0.5F,
+        0.5F,  -0.5F, -0.5F, 0.5F,  0.5F,  -0.5F,
+        0.5F,  0.5F,  -0.5F, -0.5F, 0.5F,  -0.5F,
+        -0.5F, 0.5F,  -0.5F, -0.5F, -0.5F, -0.5F,
+    };
     // clang-format on
 
-    // VAO和VBO对象
-    GLuint vao = 0;
-    GLuint vbo = 0;
-    // 生成VAO和VBO
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    // 绑定VAO，使当前VAO=vao
-    glBindVertexArray(vao);
-    // 绑定VBO，使GL_ARRAY_BUFFER=vbo
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-    // 复制坐标数据到vbo中
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // 将读取规则记录到vao中
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
-    // 启动location:0顶点属性数组
-    glEnableVertexAttribArray(0);
+    Mesh boxMesh{vertices, GL_TRIANGLES};
+    Mesh lineMesh{lines, GL_LINES};
 
     // vertexshader源码
     constexpr const char* vertexShaderSource = R"(#version 330 core
@@ -209,6 +298,8 @@ int App::run() {
             if (moveDirection != glm::vec3{0.0F}) {
                 // 计算位移
                 glm::vec3 displacement = cameraSpeed * deltaTime * glm::normalize(moveDirection);
+                // 处理碰撞
+                displacement = miniStepDisplacement(displacement, camera.position(), boxes);
                 // 移动相机
                 camera.move(displacement);
             }
@@ -235,9 +326,6 @@ int App::run() {
         // 清除颜色和深度缓存
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // 先绑定对应vao
-        glBindVertexArray(vao);
-
         // 获取frambuffersize
         int width, height;
         window.getFramebufferSize(width, height);
@@ -251,18 +339,14 @@ int App::run() {
             program.setMat4("projection", projection);
 
             for (const Box& box : boxes) {
-                drawBox(program, box);
+                drawBox(program, box, boxMesh, lineMesh);
             }
 
-            drawBox(program, ground);
+            drawBox(program, ground, boxMesh, lineMesh);
         }
 
         window.swapBuffers();
     }
-
-    // 释放vao和vbo对象
-    glDeleteBuffers(1, &vbo);
-    glDeleteVertexArrays(1, &vao);
 
     return 0;
 }

@@ -38,6 +38,7 @@ add_executable(
     client/Window.cpp
     client/ShaderProgram.cpp
     client/Camera.cpp
+    client/Mesh.cpp
 )
 
 target_link_libraries(fps_client
