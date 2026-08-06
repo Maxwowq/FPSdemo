@@ -65,3 +65,8 @@ glm::vec3 Camera::rightOnGround() const {
 void Camera::move(const glm::vec3& displacement) {
     position_ += displacement;
 }
+
+// 提供当前的front朝向
+glm::vec3 Camera::front() const {
+    return front_;
+}

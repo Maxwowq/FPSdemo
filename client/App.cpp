@@ -5,11 +5,13 @@
 #include "ShaderProgram.h"
 #include "Window.h"
 #include <GLFW/glfw3.h>
+#include <algorithm>
 #include <cmath>
 #include <glad/gl.h>
 #include <glm/geometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
+#include <limits>
 #include <span>
 
 namespace {
@@ -38,6 +40,7 @@ struct Aabb {
     glm::vec3 max;
 };
 
+// 判断两者是否重叠
 bool overlaps(const Aabb& a, const Aabb& b) {
     return a.max.x > b.min.x && a.min.x < b.max.x && a.max.y > b.min.y && a.min.y < b.max.y &&
            a.max.z > b.min.z && a.min.z < b.max.z;
@@ -107,6 +110,75 @@ glm::vec3 miniStepDisplacement(glm::vec3 displacement, glm::vec3 cameraPosition,
     }
 
     return finalDisplacement;
+}
+
+// 射线结构体
+struct Ray {
+    glm::vec3 origin;
+    glm::vec3 direction;
+};
+
+// 使用slab算法，判断射线是否与Aabb相交
+bool intersectRayAabb(const Ray& ray, const Aabb& aabb, float& hitDistance,
+                      const float epsilon = 1e-6F) {
+    float tMin = 0.0F;
+    float tMax = std::numeric_limits<float>::max();
+
+    const glm::vec3 direction = glm::normalize(ray.direction);
+
+    for (int i = 0; i < 3; i++) {
+        // 逐个坐标轴判断
+        if (std::abs(direction[i]) < epsilon) {
+            // 若该坐标轴方向为0，则直接判断起点位置
+            if (ray.origin[i] < aabb.min[i] || ray.origin[i] > aabb.max[i]) {
+                // 若没落在其中，则可以判断没有相交
+                return false;
+            }
+        } else {
+            // 计算该区间解范围
+            float t1 = (aabb.min[i] - ray.origin[i]) / direction[i];
+            float t2 = (aabb.max[i] - ray.origin[i]) / direction[i];
+            // 确保t2 > t1
+            if (t1 > t2) {
+                float tmp = t2;
+                t2 = t1;
+                t1 = tmp;
+            }
+            // 更新解范围
+            tMax = std::min(t2, tMax);
+            tMin = std::max(t1, tMin);
+            // 若无解，则说明没有相交
+            if (tMin > tMax) {
+                return false;
+            }
+        }
+    }
+    // tMin即相交距离
+    hitDistance = tMin;
+    // 若一直有解，则说明相交
+    return true;
+}
+
+// 找到最近的相交box，返回其索引
+int findClosestHit(const Ray& ray, std::span<const Box> boxes, float& hitDistance) {
+    int boxIndex = -1;
+    float minDistance = std::numeric_limits<float>::max();
+
+    for (int index = 0; index < boxes.size(); index++) {
+        float boxHitDistance = std::numeric_limits<float>::max();
+        if (intersectRayAabb(ray, makeAabb(boxes[index]), boxHitDistance)) {
+            if (boxHitDistance < minDistance) {
+                minDistance = boxHitDistance;
+                boxIndex = index;
+            }
+        }
+    }
+
+    if (boxIndex != -1) {
+        hitDistance = minDistance;
+    }
+
+    return boxIndex;
 }
 
 } // namespace
@@ -253,6 +325,11 @@ int App::run() {
     double lastCursorX, lastCursorY;
     window.getCursorPos(lastCursorX, lastCursorY);
 
+    // 鼠标按下状态记录
+    bool wasLeftMousePressed = false;
+    int hitBoxIndex = -1;
+    float hitDistance = 0.0F;
+
     while (!window.shouldClose()) {
         glfwPollEvents();
 
@@ -262,6 +339,10 @@ int App::run() {
         const float deltaTime = static_cast<float>(currentFrameTime - lastFrameTime);
         // 更新lastFrameTime
         lastFrameTime = currentFrameTime;
+
+        // 判断鼠标是否刚刚按下
+        const bool isLeftMousePressed = window.isMousePressed(GLFW_MOUSE_BUTTON_LEFT);
+        const bool justLeftMousePressed = isLeftMousePressed && !wasLeftMousePressed;
 
         // 若当前cursor是隐藏状态
         if (window.isCursorDisabled()) {
@@ -304,18 +385,27 @@ int App::run() {
                 camera.move(displacement);
             }
 
+            // 若刚刚按下鼠标左键，则判断射击相交的方框
+            if (justLeftMousePressed) {
+                Ray ray{camera.position(), camera.front()};
+                hitBoxIndex = findClosestHit(ray, boxes, hitDistance);
+            }
+
             // 若按下ESC，则启用鼠标
             if (window.isKeyPressed(GLFW_KEY_ESCAPE)) {
                 window.setCursorNormal();
             }
         }
         // 若在启用状态按下左键
-        else if (window.isMousePressed(GLFW_MOUSE_BUTTON_LEFT)) {
+        else if (justLeftMousePressed) {
             // 则隐藏鼠标
             window.setCursorDisabled();
             // 重置鼠标起点位置
             window.getCursorPos(lastCursorX, lastCursorY);
         }
+
+        // 记录鼠标左键状态
+        wasLeftMousePressed = isLeftMousePressed;
 
         // 导出view矩阵
         const glm::mat4 view = camera.viewMat();

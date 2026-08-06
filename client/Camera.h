@@ -13,6 +13,7 @@ class Camera {
     glm::vec3 position() const;
     glm::vec3 forwardOnGround() const;
     glm::vec3 rightOnGround() const;
+    glm::vec3 front() const;
 
     void move(const glm::vec3& displacement);
 
