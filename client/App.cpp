@@ -11,6 +11,7 @@
 #include <glm/geometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
+#include <iterator>
 #include <limits>
 #include <span>
 
@@ -21,18 +22,31 @@ struct Box {
     glm::vec3 color;
 };
 
-void drawBox(const ShaderProgram& program, const Box& box, const Mesh& boxMesh,
-             const Mesh& lineMesh) {
+void drawBox(const ShaderProgram& program, const Box& box, const glm::vec3& boxColor,
+             const Mesh& boxMesh, const Mesh& lineMesh) {
     glm::mat4 model{1.0F};
     model = glm::translate(model, box.center);
     model = glm::scale(model, box.size);
     program.setMat4("model", model);
-    program.setVec3("objectColor", box.color);
+    program.setVec3("objectColor", boxColor);
 
     boxMesh.drawArrays();
 
     program.setVec3("objectColor", {0.0F, 0.0F, 0.0F});
     lineMesh.drawArrays();
+}
+
+// 绘制准星
+void drawCrosshair(const ShaderProgram& program, const Mesh& crosshairMesh,
+                   const glm::vec3& crosshairColor = {1.0F, 1.0F, 1.0F}) {
+    // 正交投影，view和mat都是单位矩阵
+    glm::mat4 model{1.0F};
+    glm::mat4 view{1.0F};
+    program.setMat4("view", view);
+    program.setMat4("model", model);
+    program.setVec3("objectColor", crosshairColor);
+
+    crosshairMesh.drawArrays();
 }
 
 struct Aabb {
@@ -205,8 +219,6 @@ int App::run() {
 
     // 先makeContextCurrent再update，因为OpenGL更新的是当前窗口
     window.updateViewport();
-    // 开启深度测试
-    glEnable(GL_DEPTH_TEST);
     // 设置刷新率
     glfwSwapInterval(1);
 
@@ -257,10 +269,18 @@ int App::run() {
         0.5F,  0.5F,  -0.5F, -0.5F, 0.5F,  -0.5F,
         -0.5F, 0.5F,  -0.5F, -0.5F, -0.5F, -0.5F,
     };
+    // 准星数组
+    const float crosshair[] = {
+        // 上下20个像素长
+        0.0F, 10.0F, 0.0F, 0.0F, -10.0F, 0.0F,
+        // 左右20个像素长
+        10.0F, 0.0F, -0.0F, -10.0F, 0.0F, 0.0F,
+    };
     // clang-format on
 
     Mesh boxMesh{vertices, GL_TRIANGLES};
     Mesh lineMesh{lines, GL_LINES};
+    Mesh crosshairMesh(crosshair, GL_LINES);
 
     // vertexshader源码
     constexpr const char* vertexShaderSource = R"(#version 330 core
@@ -298,6 +318,8 @@ int App::run() {
     };
     // 保持原有地面的世界空间范围：X [-50, 50]、Y [-3, -2]、Z [-100, 0]。
     const Box ground{{0.0F, -2.5F, -50.0F}, {100.0F, 1.0F, 100.0F}, {0.22F, 0.27F, 0.24F}};
+    // 被击中的箱子变为白色
+    const glm::vec3 hitBoxColor{1.0F, 1.0F, 1.0F};
 
     // 摄像机位置
     glm::vec3 cameraPosition{0.0F, -1.0F, 3.0F};
@@ -421,18 +443,40 @@ int App::run() {
         window.getFramebufferSize(width, height);
         // 仅在height和width大于0的情况绘图
         if (height > 0 && width > 0) {
+            // 开启深度测试
+            glEnable(GL_DEPTH_TEST);
+
+            // 计算宽高比
             const float aspect = static_cast<float>(width) / static_cast<float>(height);
 
             // 创建projection矩阵
-            glm::mat4 projection = glm::perspective(glm::radians(45.0F), aspect, 0.1F, 100.0F);
+            glm::mat4 perspective = glm::perspective(glm::radians(45.0F), aspect, 0.1F, 100.0F);
             // 上传projection矩阵
-            program.setMat4("projection", projection);
+            program.setMat4("projection", perspective);
 
-            for (const Box& box : boxes) {
-                drawBox(program, box, boxMesh, lineMesh);
+            for (int index = 0; index < std::ssize(boxes); index++) {
+                // 若是被击中的Box
+                if (index == hitBoxIndex) {
+                    // 设为白色
+                    drawBox(program, boxes[index], hitBoxColor, boxMesh, lineMesh);
+                } else {
+                    // 否则按照原本颜色绘制
+                    drawBox(program, boxes[index], boxes[index].color, boxMesh, lineMesh);
+                }
             }
 
-            drawBox(program, ground, boxMesh, lineMesh);
+            drawBox(program, ground, ground.color, boxMesh, lineMesh);
+
+            // 关闭深度测试
+            glDisable(GL_DEPTH_TEST);
+            // 计算正交投影矩阵
+            const float halfWidth = static_cast<float>(width) / 2.0F;
+            const float halfHeight = static_cast<float>(height) / 2.0F;
+            // 设置原点为屏幕中心，一个单位约为一个像素
+            glm::mat4 ortho = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight);
+            program.setMat4("projection", ortho);
+            // 绘制准星
+            drawCrosshair(program, crosshairMesh);
         }
 
         window.swapBuffers();
