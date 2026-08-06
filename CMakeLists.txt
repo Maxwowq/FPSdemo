@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.20)
 
 project(FPSdemo VERSION 0.1.0 LANGUAGES C CXX)
 
+# if(MSVC)
+#     set(CMAKE_MSVC_RUNTIME_LIBRARY
+#         "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+#     )
+# endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(FetchContent)
@@ -49,14 +55,22 @@ target_link_libraries(fps_client
         glm::glm
 )
 
+add_executable(
+    fps_server
+    server/main.cpp
+    server/App.cpp
+)
+
 if(APPLE)
     target_compile_definitions(fps_client PRIVATE GL_SILENCE_DEPRECATION)
 endif()
 
 if(MSVC)
     target_compile_options(fps_client PRIVATE /utf-8)
+    target_compile_options(fps_server PRIVATE /utf-8)
 endif()
 
 target_compile_definitions(fps_client PRIVATE GLFW_INCLUDE_NONE)
 
 target_compile_features(fps_client PRIVATE cxx_std_20)
+target_compile_features(fps_server PRIVATE cxx_std_20)
